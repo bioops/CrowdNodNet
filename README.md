@@ -6,7 +6,7 @@ In order to accurately and efficiently reconstruct nodulation gene network, a cr
 
 ### Usage
 
-* If you are interested in the nodulation gene network, you can access the website at <http://CrowdNodNet.bioops.info/>. It is quite simple to use, and more information is avaible in the manuscript (link to be added).
+* If you are interested in the nodulation gene network, you can access the website at <http://CrowdNodNet.bioops.info/>. It is quite simple to use, and more information is available in the manuscript (link to be added).
 
 * If you are want to create crowdsourcing platform for your own interested biological process, please read below.
 
