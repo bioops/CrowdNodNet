@@ -8,7 +8,7 @@ In order to accurately and efficiently reconstruct nodulation gene network, a cr
 
 * If you are interested in the nodulation gene network, you can access the website at <http://crowd.bioops.info/>. It is quite simple to use, and more information is available in the manuscript (link to be added).
 
-* If you are want to create crowdsourcing platform for your own interested biological process, please read below.
+* If you would like to create crowdsourcing platform for your own interested biological process, please read the following instructions.
 
 ### Create your own platform
 
@@ -18,7 +18,7 @@ In order to accurately and efficiently reconstruct nodulation gene network, a cr
 
 3. Copy (`git clone`) source code of this package to the proper folder on your webserver, e.g. `/var/www/html/`.
 
-4. Modify `title` and `wiki` in `config.json`. `Title` is the platform title, and `wiki` is the your own wikimedia url, e.g <http://crowd.bioops.info/mediawiki/index.php>.
+4. Modify `title` and `wiki` in `config.json`. `title` is the platform title, and `wiki` is the your own wikimedia url, e.g <http://crowd.bioops.info/mediawiki/index.php>.
 
 5. You can also edit `constraints` if necessary. 
 
@@ -28,6 +28,8 @@ In order to accurately and efficiently reconstruct nodulation gene network, a cr
     force layout, node positions will be "nudged" towards the `x` and/or `y`
     values given, with a force proportional to the `weight` given.
   * **Link strength constraints**:  These constraints should have the property `strength`, which is a multiplier on the link strength of the links to and from the objects that the constraint applies to.  This can be used to relax the position of certain nodes.
+
+6. Your mediawiki website maybe enconter intensive spam attack. Make sure you read [this](https://www.mediawiki.org/wiki/Manual:Combating_spam) and add some antispam protections.
 
 ### Acknowlegement
 
