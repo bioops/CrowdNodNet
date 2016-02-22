@@ -22,12 +22,14 @@ In order to accurately and efficiently reconstruct nodulation gene network, a cr
 
 5. You can also edit `constraints` if necessary. 
 
-* `constraints`: An array of objects that describe how to position the nodes. Each constraint should have a `type` field whose value should be either `'position'` or `'linkStrength'`, and a `has` field that specifies the conditions an object must meet for the constraints to be applied.
-  * **Position constraints**:  These constraints should have the properties
+ `constraints`: An array of objects that describe how to position the nodes. Each constraint should have a `type` field whose value should be either `'position'` or `'linkStrength'`, and a `has` field that specifies the conditions an object must meet for the constraints to be applied.
+
+  **Position constraints**:  These constraints should have the properties
     `weight`, `x` (optional) and `y` (optional).  On each iteration of the
     force layout, node positions will be "nudged" towards the `x` and/or `y`
     values given, with a force proportional to the `weight` given.
-  * **Link strength constraints**:  These constraints should have the property `strength`, which is a multiplier on the link strength of the links to and from the objects that the constraint applies to.  This can be used to relax the position of certain nodes.
+
+  **Link strength constraints**:  These constraints should have the property `strength`, which is a multiplier on the link strength of the links to and from the objects that the constraint applies to.  This can be used to relax the position of certain nodes.
 
 6. Your mediawiki website maybe enconter intensive spam attack. Make sure you read [this](https://www.mediawiki.org/wiki/Manual:Combating_spam) and add some antispam protections.
 
