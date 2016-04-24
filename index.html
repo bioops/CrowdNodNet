@@ -1,0 +1,408 @@
+<html>
+<head>
+    <!-- jquery https://jquery.com/ -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+	
+	<!-- vis.js http://visjs.org/ -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+	<!-- bootstrap http://getbootstrap.com/ -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	
+	<!-- slidereveal http://nnattawat.github.io/slideReveal/ -->
+	<script src="js/jquery.slidereveal.min.js"></script>
+	
+    <style type="text/css">
+        #mynetwork {
+            width: 55%;
+            height: 90%;
+        }
+		
+        #slider{
+            background-color: #E6E6E6;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        
+        #operation {
+            font-size:28px;
+        }
+		
+        #operationE {
+            font-size:28px;
+        }
+		
+		.ui-autocomplete {
+            max-height: 150px;
+			max-width: 250px;
+            overflow-y: auto;
+            overflow-x: hidden;
+			position: absolute;
+			top: 0;
+			left: 0;
+			cursor: default;
+		}
+		
+		* html .ui-autocomplete {
+		    height: 200px;
+        }
+		
+    </style>
+</head>
+
+<body>
+    <div id='slider'>
+		<h1>Abstract</h1>
+        <h2>Background</h2>
+        <p>The Legumes (Fabaceae) are an economically and ecologically important group of plant species with the conspicuous capacity for symbiotic nitrogen fixation in root nodules, specialized plant organs containing symbiotic microbes. With the aim of understanding the underlying molecular mechanisms leading to nodulation, many efforts are underway to identify nodulation-related genes and determine how these genes interact with each other. In order to accurately and efficiently reconstruct nodulation gene network, a crowdsourcing platform, CrowdNodNet, was created.</p>
+        <h2>Results</h2>
+        <p>The platform implements the jQuery and vis.js JavaScript librarys, so that users are able to interactively visualize and edit the gene network, and easily access the information about the network, e.g. gene lists, gene interactions and gene functional annotations. More importantly, all the gene network information is written on MediaWiki pages, enabling users to edit the associated information.<p>
+        <h2>Conclusions</h2>
+        <p>Utilizing the continuously updated, collaboratively written, and community-reviewed Wikipedia model, the platform could, in a short time, become a comprehensive knowledge base of nodulation-related pathways. The platform could also be used for other biological processes, and thus has great potential for integrating and advancing our understanding of the functional genomics and systems biology of any process for any species. The platform is available at <a href="http://crowd.bioops.info/">http://crowd.bioops.info/</a>, and the source code can be openly accessed at <a href="https://github.com/bioops/crowdnodnet">https://github.com/bioops/crowdnodnet</a> under MIT License.<p>
+
+	</div>
+
+    <button id='trigger'  class="btn btn-success nav-button">></button>
+    <!--<button id='edit'     class="btn btn-default nav-button">Enable the edit mode</button>-->
+    <button id='refresh'  class="btn btn-default nav-button"  onclick="this.blur();">Refresh</button>
+    <button id='savenet'  class="btn btn-default nav-button"  onclick="this.blur();">Save the edit</button>
+    <button id='restore'  class="btn btn-default nav-button"  onclick="this.blur();">Restore the original network</button>
+	<button id='download' class="btn btn-default nav-button" onclick="this.blur();">Download the network</button>
+
+    <div id="dialog" align="center">
+        <span id="operation">node</span><br>
+        <table style="margin:auto;">
+            <tr><td>label</td><td><input id="node-label" value="new value" /></td></tr>
+			<tr><td>title</td><td><input id="node-title" value="new value" /></td></tr>
+			<tr><td>id</td><td><input id="node-id" /></td></tr>
+		</table>
+        <input type="button" value="save" id="saveButton"  class="btn btn-default btn-sm"/>
+        <input type="button" value="cancel" id="cancelButton"  class="btn btn-default btn-sm"/>
+    </div>
+
+    <div id="dialogE" align="center">
+         <span id="operationE">Edge</span> <br>
+         <table style="margin:auto;">
+            <tr><td>from</td><td><input id="edge-from" STYLE="color: #ADADAD;"readonly/></td></tr>
+			<tr><td>to</td><td><input id="edge-to" STYLE="color: #ADADAD;" readonly/></td></tr>
+			<tr><td>arrow</td>
+			    <td><select id="edge-arrow">
+				        <option value="to">to</option>
+				        <option value="from">from</option>
+				        <option >unknown</option>
+					</select>
+				</td>
+			</tr>
+			<tr><td>Activation</td>
+			    <td><select id="edge-dash">
+                        <option value="false">Activation</option>
+                        <option value="true">Inhibition</option>
+                    </select>
+				</td>
+            </tr>
+        </table>
+        <input type="button" value="save" id="saveButtonE" class="btn btn-default btn-sm"/>
+        <input type="button" value="cancel" id="cancelButtonE" class="btn btn-default btn-sm"/>
+		<span id = "edge-from-id"></span><span id = "edge-to-id"></span>
+    </div>
+
+    <div id="B"><div id="mynetwork"></div></div>
+
+    <script type="text/javascript">
+   
+    var config_wiki="http://crowd.bioops.info/mediawiki/index.php";
+    var seed = 100;
+   
+    // create an array with nodes
+     /*var nodes = new vis.DataSet([
+        {id: 'SYMRK', label: 'SYMRK', title:"SYMRK gene"},
+       {id: 'CCAMK', label: 'CCAMK', title:"CCAMK gene"},
+       {id: 'NFR5', label: 'NFR5', title:"NFR5 gene"},
+       {id: 'NIN', label: 'NIN', title:"NIN gene"},
+       {id: 'SIP1', label: 'SIP1', title:"SIP gene"}
+    ]);
+    */
+  
+
+     // create an array with edges
+    /*var edges = new vis.DataSet([
+       {from: 'SYMRK', to: 'NFR5', arrows: 'to'},
+       {from: 'SYMRK', to: 'CCAMK', arrows: 'to', dashes:true},
+       {from: 'CCAMK', to: 'NIN'},
+       {from: 'NIN', to: 'CCAMK'},
+       {from: 'CCAMK', to: 'SIP1'}
+    ]);
+
+    */
+
+	// get network info from database
+    var nodes;
+    var edges;
+	
+    $.ajax({
+        method: "POST",
+		url: "initial.php",
+        dataType: "json",
+        success: function( datai ) {
+            //alert(JSON.stringify(datai, null, 4));
+            nodes = new vis.DataSet(datai.nodes);
+            for (var i = 0; i < datai.edges.length; i++) {
+                datai.edges[i].dashes=(datai.edges[i].dashes=="true");
+            }
+            edges = new vis.DataSet(datai.edges);
+        },
+        async: false
+    });
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+
+    // provide the data in the vis format
+    var datan = {
+        nodes: nodes,
+        edges: edges
+    };
+	
+    $( "#dialog" ).dialog({
+      autoOpen: false,
+	  width: 400,
+	  height: 300
+    });
+	
+	$( "#dialogE" ).dialog({
+      autoOpen: false,
+	  width: 400,
+	  height: 300
+    });
+	
+    var options = {
+        interaction: {
+            hover:true,
+            navigationButtons: true,
+            keyboard: false
+        },
+		nodes: {
+			shape: "box",
+			font: '30px arial black',
+			size: 40
+		},
+		edges: {
+		    width: 3
+		},
+        layout: {randomSeed:seed},
+        manipulation: {
+            enabled: true,
+            addNode: function (nodedata, callback) {
+                // filling in the popup DOM elements
+                document.getElementById('operation').innerHTML = "Add Node";
+                document.getElementById('node-id').value = nodedata.id;
+                //document.getElementById('node-label').value = nodedata.label;
+                //document.getElementById('node-title').value = nodedata.title;
+                document.getElementById('saveButton').onclick = savedata.bind(this, nodedata, callback);
+                document.getElementById('cancelButton').onclick = clearPopUp.bind();
+                //document.getElementById('network-popUp').style.display = 'block';
+                
+				$("#dialog").dialog("open");
+				
+                $( "#node-label" ).autocomplete({
+                    appendTo: "#dialog",
+					minLength: 2,
+                    source: function( request, response ) {
+                        $.ajax({
+                            method: "POST",
+							url: "suggestions.php",
+                            data: {term: request.term},
+                            dataType: "json",
+                            success: function( nodedatar ) {
+                                response( $.map( nodedatar, function( item ) {
+                                    return {
+                                        id: item.id,
+	            		    			label: item.label,
+                                        title:  item.title
+                                    }
+                                }));
+                            }
+                        });
+                    },
+	                focus: function( event, ui ) {
+                        $( "#node-label" ).val( ui.item.label );
+                        return false;
+                    },
+            	    select: function( event, ui ) {
+                        $( "#node-id" ).val( ui.item.id );
+                        $( "#node-label" ).val( ui.item.label );
+                        $( "#node-title" ).val( ui.item.title );
+                        return false;
+                    }
+	
+                })
+                .autocomplete( "instance")._renderItem = function( ul, item ) {
+                    return $( "<li>" )
+                        .append( "<font size=\"2\"><a><b>" + item.label + "</b><br>" + item.title + "</a></font>" )
+                        .appendTo( ul );
+                };
+
+
+            },
+          
+    
+            editEdge:false,
+
+            addEdge: function (edgedata, callback) {
+                if (edgedata.from == edgedata.to) {
+                    var r = confirm("Do you want to connect the node to itself?");
+                    if (r == true) {
+                        callback(edgedata);
+                    }
+                }else {
+                    $("#dialogE").dialog("open");
+					
+					var label_from=datan.nodes._data[edgedata.from]["label"];
+					var label_to=datan.nodes._data[edgedata.to]["label"];
+					document.getElementById('operationE').innerHTML = "Edit Edge";
+                    document.getElementById('edge-from').value = label_from;
+                    document.getElementById('edge-to').value = label_to;
+					document.getElementById('edge-from-id').value = edgedata.from;
+					document.getElementById('edge-to-id').value = edgedata.to;
+                    document.getElementById('saveButtonE').onclick = savedataE.bind(this, edgedata, callback);
+                    document.getElementById('cancelButtonE').onclick = cancelEditE.bind(this,callback);
+                    //document.getElementById('network-popUpE').style.display = 'block'; 
+					
+                }
+            }
+
+        }  
+    };
+
+    // initialize your network!
+    var network = new vis.Network(container, datan, options);
+   
+    function clearPopUp() {
+        document.getElementById('saveButton').onclick = null;
+        document.getElementById('cancelButton').onclick = null;
+        //document.getElementById('network-popUp').style.display = 'none';
+		$("#dialog").dialog("close");
+    }
+    
+    function clearPopUpE() {
+        document.getElementById('saveButtonE').onclick = null;
+        document.getElementById('cancelButtonE').onclick = null;
+        //document.getElementById('network-popUpE').style.display = 'none';
+		$("#dialogE").dialog("close");
+    }
+
+    function cancelEdit(callback) {
+        clearPopUp();
+        callback(null);
+    }
+    
+    function cancelEditE(callback) {
+        clearPopUpE();
+        callback(null);
+    }
+    
+    function savedata(datan,callback) {
+        datan.id = document.getElementById('node-id').value;
+        datan.label = document.getElementById('node-label').value;
+        datan.title = document.getElementById('node-title').value;
+        clearPopUp();
+        callback(datan);
+    }
+    
+    function savedataE(datan, callback) {
+        datan.from = document.getElementById('edge-from-id').value;
+        datan.to = document.getElementById('edge-to-id').value;
+        datan.arrows = document.getElementById('edge-arrow').value;
+        datan.dashes = (document.getElementById('edge-dash').value == "true") ;
+        clearPopUpE();
+        callback(datan);
+    }
+       
+    function getDoc(gene_name){
+        if($.isEmptyObject(gene_name)){
+        }else{
+            var doc  = "<h1 class=\"title\">" + gene_name + "</h1>\n";
+            var doc_no = "<div class=\"alert alert-warning\"><a href=\"" + config_wiki + "/" + gene_name +
+                         "?action=edit\" target=\"_blank\" data-name=\"$name\">Create annotation</a></div>";
+                   
+            var doc_yes = "<h1 class=\"section\">Annotation</h1>\n";
+            doc_yes += "<a href=\"" + config_wiki + "/" + gene_name + "\" target=\"_blank\" datan-name=\"" + gene_name + "\">edit</a>\n";
+            var filename = config_wiki + "/" + gene_name + "?action=render";
+
+            $.get(filename)
+                .success(function(data) { $("#slider").html(doc + doc_yes + data)})
+                .error(function() {$("#slider").html(doc + doc_no )});
+         
+            $('#slider').slideReveal("show");
+        }
+    }
+   
+    network.on("selectNode", function (params) {
+		var label_node=datan.nodes._data[params.nodes]["label"];
+		getDoc(label_node);
+    });
+
+    $('#slider').slideReveal({
+        trigger: $("#trigger"),
+        position: "left",
+        overlay: false,
+        overlayColor: "rgba(0,0,0,0)",
+        push: true,
+        width: '40%'
+    });
+   
+    //$( "#edit" ).click(function() {
+    //    network.setOptions({
+    //        manipulation: true
+    //    });
+    //});
+   
+   $( "#savenet" ).click(function() {
+        var n=datan.nodes._data;
+        var e=datan.edges._data;
+        $.ajax({
+            method: "POST",
+			url: "savenet.php",
+            data: {nodes: n, edges:e},
+            fail: (function(){
+                alert("Cannot save to the datanbase!");
+            }),
+			done: (function(result){
+                alert(result);
+            })
+        });
+    });
+	
+	$( "#restore" ).click(function() {
+        var res = confirm("Do you really want to restore the original network? All your editing will be deleted permermentally.");
+        if (res == true) {
+            $.ajax({
+                url: "restore.php",
+			});
+            location.reload();
+        }
+    });
+   
+    $( "#refresh" ).click(function() {
+        location.reload(true);
+    });
+	
+	$( "#download" ).click(function() {
+		$("<a />", {
+            "download": "data.json",
+            "href" : "data:application/json," + encodeURIComponent(JSON.stringify(datan))
+        }).appendTo("body")
+        .click(function() {
+             $(this).remove()
+        })[0].click()
+	    
+		this.href = 'data:text/plain;charset=utf-8,'+ encodeURIComponent(JSON.stringify(datan));
+    }).focusout();
+   
+
+    </script>
+</body>
+</html>
