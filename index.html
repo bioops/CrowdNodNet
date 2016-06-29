@@ -1,5 +1,16 @@
 <html>
 <head>
+<title>CrowdNodNet</title>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+         })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-21431888-4', 'auto');
+    ga('send', 'pageview');
+
+</script>
     <!-- jquery https://jquery.com/ -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -25,6 +36,7 @@
             background-color: #E6E6E6;
             padding: 10px;
             overflow-y: scroll;
+			display:none;
         }
         
         #operation {
@@ -34,6 +46,15 @@
         #operationE {
             font-size:28px;
         }
+		
+		#dialog {
+            display:none;
+        }
+
+	    #dialogE {
+            display:none;
+        }
+
 		
 		.ui-autocomplete {
             max-height: 150px;
@@ -54,30 +75,21 @@
 </head>
 
 <body>
-    <div id='slider'>
-		<h1>Abstract</h1>
-        <h2>Background</h2>
-        <p>The Legumes (Fabaceae) are an economically and ecologically important group of plant species with the conspicuous capacity for symbiotic nitrogen fixation in root nodules, specialized plant organs containing symbiotic microbes. With the aim of understanding the underlying molecular mechanisms leading to nodulation, many efforts are underway to identify nodulation-related genes and determine how these genes interact with each other. In order to accurately and efficiently reconstruct nodulation gene network, a crowdsourcing platform, CrowdNodNet, was created.</p>
-        <h2>Results</h2>
-        <p>The platform implements the jQuery and vis.js JavaScript librarys, so that users are able to interactively visualize and edit the gene network, and easily access the information about the network, e.g. gene lists, gene interactions and gene functional annotations. More importantly, all the gene network information is written on MediaWiki pages, enabling users to edit the associated information.<p>
-        <h2>Conclusions</h2>
-        <p>Utilizing the continuously updated, collaboratively written, and community-reviewed Wikipedia model, the platform could, in a short time, become a comprehensive knowledge base of nodulation-related pathways. The platform could also be used for other biological processes, and thus has great potential for integrating and advancing our understanding of the functional genomics and systems biology of any process for any species. The platform is available at <a href="http://crowd.bioops.info/">http://crowd.bioops.info/</a>, and the source code can be openly accessed at <a href="https://github.com/bioops/crowdnodnet">https://github.com/bioops/crowdnodnet</a> under MIT License.<p>
-
-	</div>
+    <div id='slider'></div>
 
     <button id='trigger'  class="btn btn-success nav-button">></button>
     <!--<button id='edit'     class="btn btn-default nav-button">Enable the edit mode</button>-->
-    <button id='refresh'  class="btn btn-default nav-button"  onclick="this.blur();">Refresh</button>
-    <button id='savenet'  class="btn btn-default nav-button"  onclick="this.blur();">Save the edit</button>
+	<button id='refresh'  class="btn btn-default nav-button"  onclick="this.blur();">Refresh</button>
+	<button id='savenet'  class="btn btn-default nav-button"  onclick="this.blur();">Save the edit</button>
     <button id='restore'  class="btn btn-default nav-button"  onclick="this.blur();">Restore the original network</button>
 	<button id='download' class="btn btn-default nav-button" onclick="this.blur();">Download the network</button>
 
     <div id="dialog" align="center">
         <span id="operation">node</span><br>
         <table style="margin:auto;">
-            <tr><td>label</td><td><input id="node-label" value="new value" /></td></tr>
-			<tr><td>title</td><td><input id="node-title" value="new value" /></td></tr>
-			<tr><td>id</td><td><input id="node-id" /></td></tr>
+            <tr><td>Symbol</td><td><input id="node-label" value="new value" /></td></tr>
+			<tr><td>Full name</td><td><input id="node-title" value="new value" /></td></tr>
+			<tr><td>ID</td><td><input id="node-id" /></td></tr>
 		</table>
         <input type="button" value="save" id="saveButton"  class="btn btn-default btn-sm"/>
         <input type="button" value="cancel" id="cancelButton"  class="btn btn-default btn-sm"/>
@@ -86,13 +98,13 @@
     <div id="dialogE" align="center">
          <span id="operationE">Edge</span> <br>
          <table style="margin:auto;">
-            <tr><td>from</td><td><input id="edge-from" STYLE="color: #ADADAD;"readonly/></td></tr>
-			<tr><td>to</td><td><input id="edge-to" STYLE="color: #ADADAD;" readonly/></td></tr>
-			<tr><td>arrow</td>
+            <tr><td>From</td><td><input id="edge-from" STYLE="color: #ADADAD;"readonly/></td></tr>
+			<tr><td>To</td><td><input id="edge-to" STYLE="color: #ADADAD;" readonly/></td></tr>
+			<tr><td>Direction</td>
 			    <td><select id="edge-arrow">
 				        <option value="to">to</option>
 				        <option value="from">from</option>
-				        <option >unknown</option>
+				        <option value="unknown">unknown</option>
 					</select>
 				</td>
 			</tr>
@@ -113,7 +125,7 @@
 
     <script type="text/javascript">
    
-    var config_wiki="http://crowd.bioops.info/mediawiki/index.php";
+    var config_wiki="https://crowd.bioops.info/mediawiki/index.php";
     var seed = 100;
    
     // create an array with nodes
@@ -150,7 +162,12 @@
             //alert(JSON.stringify(datai, null, 4));
             nodes = new vis.DataSet(datai.nodes);
             for (var i = 0; i < datai.edges.length; i++) {
-                datai.edges[i].dashes=(datai.edges[i].dashes=="true");
+                if(datai.edges[i].dashes=="true"){
+				    datai.edges[i].title="Inhibits";
+				} else if (datai.edges[i].arrows=="from" || datai.edges[i].arrows=="to"){
+				    datai.edges[i].title="Activates";
+				};
+				datai.edges[i].dashes=(datai.edges[i].dashes=="true");
             }
             edges = new vis.DataSet(datai.edges);
         },
@@ -317,6 +334,14 @@
         datan.to = document.getElementById('edge-to-id').value;
         datan.arrows = document.getElementById('edge-arrow').value;
         datan.dashes = (document.getElementById('edge-dash').value == "true") ;
+		if(datan.arrows=="unknown"){
+		    datan.dashes=false;
+		}
+		if(datan.dashes){
+			datan.title="Inhibits";
+		} else if (datan.arrows=="from" || datan.arrows=="to"){
+			datan.title="Activates";
+		};
         clearPopUpE();
         callback(datan);
     }
@@ -326,7 +351,7 @@
         }else{
             var doc  = "<h1 class=\"title\">" + gene_name + "</h1>\n";
             var doc_no = "<div class=\"alert alert-warning\"><a href=\"" + config_wiki + "/" + gene_name +
-                         "?action=edit\" target=\"_blank\" data-name=\"$name\">Create annotation</a></div>";
+                         "?action=edit&preload=Template:Welcome\" target=\"_blank\" data-name=\"$name\">Create annotation</a></div>";
                    
             var doc_yes = "<h1 class=\"section\">Annotation</h1>\n";
             doc_yes += "<a href=\"" + config_wiki + "/" + gene_name + "\" target=\"_blank\" datan-name=\"" + gene_name + "\">edit</a>\n";
@@ -401,7 +426,11 @@
 	    
 		this.href = 'data:text/plain;charset=utf-8,'+ encodeURIComponent(JSON.stringify(datan));
     }).focusout();
-   
+	
+	$(document).ready(function() {
+        $("#slider").html('<h1>Abstract</h1><h2>Background</h2><p>The Legumes (Fabaceae) are an economically and ecologically important group of plant species with the conspicuous capacity for symbiotic nitrogen fixation in root nodules, specialized plant organs containing symbiotic microbes. With the aim of understanding the underlying molecular mechanisms leading to nodulation, many efforts are underway to identify nodulation-related genes and determine how these genes interact with each other. In order to accurately and efficiently reconstruct nodulation gene network, a crowdsourcing platform, CrowdNodNet, was created.</p><h2>Results</h2><p>The platform implements the jQuery and vis.js JavaScript librarys, so that users are able to interactively visualize and edit the gene network, and easily access the information about the network, e.g. gene lists, gene interactions and gene functional annotations. More importantly, all the gene network information is written on MediaWiki pages, enabling users to edit the associated information.<p><h2>Conclusions</h2><p>Utilizing the continuously updated, collaboratively written, and community-reviewed Wikipedia model, the platform could, in a short time, become a comprehensive knowledge base of nodulation-related pathways. The platform could also be used for other biological processes, and thus has great potential for integrating and advancing our understanding of the functional genomics and systems biology of any process for any species. The platform is available at <a href="http://crowd.bioops.info/">http://crowd.bioops.info/</a>, and the source code can be openly accessed at <a href="https://github.com/bioops/crowdnodnet">https://github.com/bioops/crowdnodnet</a> under MIT License.<p>');
+		document.getElementById('slider').style.display = 'block';
+    });
 
     </script>
 </body>
